@@ -1,6 +1,11 @@
 # Azure web tier config
 # NGINX deployed to linux virtual machine scale set behind a load balancer
 
+# Cloud init filie
+locals {
+  cloud_init = templatefile("${path.module}/cloud-init.yaml", {})
+}
+
 # Create resource group
 resource "azurerm_resource_group" "rg" {
   name     = "rg_g360"
@@ -30,7 +35,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "scale_set" {
   location            = azurerm_resource_group.rg.location
   sku                 = "Standard_B1ls"
   instances           = 2
-  custom_data         = filebase64("${path.module}/customdata.tpl")
+  custom_data         = base64encode(local.cloud_init)
 
 
   computer_name_prefix = "myVM"
@@ -54,8 +59,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "scale_set" {
   }
 
   network_interface {
-    name    = "NIC"
-    primary = true
+    name                      = "NIC"
+    primary                   = true
+    network_security_group_id = azurerm_network_security_group.my_terraform_nsg.id
 
     ip_configuration {
       name                                   = "internal"
@@ -63,6 +69,53 @@ resource "azurerm_linux_virtual_machine_scale_set" "scale_set" {
       subnet_id                              = azurerm_subnet.internal.id
       load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.backend_address_pool.id]
     }
+  }
+
+  boot_diagnostics {
+    storage_account_uri = null
+  }
+}
+
+# Create Network Security Group and Rule
+resource "azurerm_network_security_group" "my_terraform_nsg" {
+  name                = "myNetworkSecurityGroup"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  security_rule {
+    name                       = "SSH"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "HTTP"
+    priority                   = 1002
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "HTTPS"
+    priority                   = 1003
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
   }
 }
 
@@ -103,4 +156,17 @@ resource "azurerm_lb_rule" "lb_rule" {
   backend_port                   = 80
   frontend_ip_configuration_name = "g360_publicIP"
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.backend_address_pool.id]
+}
+
+# Create Inbound NAT Rules 
+resource "azurerm_lb_nat_rule" "my_terraform_lb_nat_rule" {
+  resource_group_name            = azurerm_resource_group.rg.name
+  loadbalancer_id                = azurerm_lb.loadbalancer.id
+  name                           = "ssh"
+  protocol                       = "Tcp"
+  frontend_port_start            = 22
+  frontend_port_end              = 30
+  backend_port                   = 22
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.backend_address_pool.id
+  frontend_ip_configuration_name = "g360_publicIP"
 }
