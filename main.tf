@@ -30,6 +30,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "scale_set" {
   location            = azurerm_resource_group.rg.location
   sku                 = "Standard_B1ls"
   instances           = 2
+
+  computer_name_prefix = "myVM"
   admin_username = var.username
 
   admin_ssh_key {
