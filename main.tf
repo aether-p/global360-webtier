@@ -69,7 +69,7 @@ resource "azurerm_public_ip" "public_ip" {
   name                = "g360_publicIPforLB"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
   sku                 = "Standard"
 }
 
@@ -99,6 +99,6 @@ resource "azurerm_lb_rule" "lb_rule" {
   protocol                       = "Tcp"
   frontend_port                  = 80
   backend_port                   = 80
-  frontend_ip_configuration_name = "g360_PublicIP"
+  frontend_ip_configuration_name = "g360_publicIP"
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.backend_address_pool.id]
 }
