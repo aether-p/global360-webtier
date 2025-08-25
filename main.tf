@@ -62,9 +62,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "scale_set" {
 
 # Create auto scaling for self-healing capability 
 resource "azurerm_monitor_autoscale_setting" "autoscale" {
-    name = "g360_autoscale"
-    enabled = true
-    resource_group_name = azurerm_resource_group.rg.name
+  name                = "g360_autoscale"
+  enabled             = true
+  resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   profile {
     name = "g360_self_healing"

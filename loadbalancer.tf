@@ -30,19 +30,6 @@ resource "azurerm_lb_rule" "lb_rule" {
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.backend_address_pool.id]
 }
 
-# Create Inbound NAT Rules 
-resource "azurerm_lb_nat_rule" "my_terraform_lb_nat_rule" {
-  resource_group_name            = azurerm_resource_group.rg.name
-  loadbalancer_id                = azurerm_lb.loadbalancer.id
-  name                           = "ssh"
-  protocol                       = "Tcp"
-  frontend_port_start            = 22
-  frontend_port_end              = 30
-  backend_port                   = 22
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.backend_address_pool.id
-  frontend_ip_configuration_name = "g360_publicIP"
-}
-
 #create public IP for load balancer
 resource "azurerm_public_ip" "public_ip" {
   name                = "g360_publicIPforLB"
