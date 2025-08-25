@@ -1,4 +1,4 @@
 #cloud-config
 runcmd:
- - sudo apt-get update
- - sudo apt install nginx -y
+ - sudo apt-get update | tee cloud-init-runcmd.log
+ - sudo apt install nginx -y | tee cloud-init-runcmd.log
