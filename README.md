@@ -2,6 +2,7 @@
 Interview task for Global360  
 ## Architecture  
 ![Architecture diagram](https://github.com/aether-p/global360-webtier/blob/main/g360_architecture.png "Architecture" )  
+Estimated monthly cost ~18AUD
 
 ## Step by Step  
 ### Prerequisites:  
